@@ -12,7 +12,5 @@ jobs:
         cache: 'pip'
     - name: Configure python
       run: pip install -r requirements.txt && pre-commit install
-      : # TODO run: pip install --upgrade pip && pip install poetry && poetry install && pip install pre-commit && pre-commit install
-
     - name: Run pre-commit
       run: pre-commit run --all-files
