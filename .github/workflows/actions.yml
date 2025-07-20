@@ -8,7 +8,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
-        python-version: "3.12.7"
+        python-version: '3.12.7'
     - name: Configure python
       run: pip install -r requirements.txt && pre-commit install
       : # TODO run: pip install --upgrade pip && pip install poetry && poetry install && pip install pre-commit && pre-commit install
