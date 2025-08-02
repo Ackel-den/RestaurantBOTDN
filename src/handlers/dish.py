@@ -10,105 +10,114 @@ from aiogram.filters import Command
 router = Router()
 
 
-def default_factory():
-    return "Такого блюда нет"
-
-
-list_of_dish = defaultdict(default_factory)
+list_of_dish = defaultdict()
 
 
 # команда для создания блюда
 @router.message(Command("create"))
 async def cmd_create(message: Message):
-    try:
-        name = split_message(message)[0]
-    except TypeError:
-        await message.answer(
-            "Неверный ввод, проверьте верно ли вы отправили сообщение!"
-        )
+    name = await check_message(message, 1)
+
+    if name is None:
         return
+
+    name = name[0]
 
     if name in list_of_dish:
         await message.answer("Это блюдо уже есть в списке")
         return
 
     list_of_dish[name] = list()
+    await message.answer("Блюдо успешо создано!")
     print(list_of_dish)
 
 
 # добавление ингредиента в блюдо
 @router.message(Command("add"))
 async def cmd_add(message: Message):
-    try:
-        ingredients = split_message(message)
-        dish_name = ingredients[0]
-    except TypeError:
+    ingredients: [str] = await check_message(message, 4)
+
+    if ingredients is None:
         await message.answer(
-            "Неверный ввод, проверьте верно ли вы отправили сообщение!"
-        )
-        return
-    except IndexError:
-        await message.answer(
-            "Неверный ввод, проверьте верно ли вы отправили сообщение!"
+            "Неверный ввод\n"
+            "\nКак добавить: "
+            '\n/add "название блюда" "название ингредиента" '
+            '"вес ингредиента" "единица измерения" '
         )
         return
 
+    dish_name = ingredients[0]
     ingredients.pop(0)
 
     if check_dish_list(dish_name):
-        if len(ingredients) < 3:
-            await message.answer(
-                "Неверный ввод\n"
-                "\nКак добавить: "
-                '\n/add "название блюда" "название ингредиента" '
-                '"вес ингредиента" "единица измерения" '
-            )
-            return
-        elif len(ingredients) == 3:
-            name, weight, measure = ingredients
-            new_ingr = Ingredients(name=name, weight=weight, measure=measure)
-            list_of_dish[dish_name].append(new_ingr)
-            print(list_of_dish)
-            return
+        name, weight, measure = ingredients
+        new_ingr = Ingredients(name=name, weight=weight, measure=measure)
+        list_of_dish[dish_name].append(new_ingr)
+        await message.answer("Ингредиент добавлен в список!")
+        return
+
     await message.answer("Такого блюда не существует!")
 
 
 # команда для списка ингредиентов
 @router.message(Command("get"))
 async def cmd_get(message: Message):
-    try:
-        name = split_message(message)[0]
-    except TypeError:
-        await message.answer(
-            "Неверный ввод, проверьте верно ли вы отправили сообщение!"
-        )
+    name = await check_message(message, 1)
+
+    if name is None:
         return
+
+    name = name[0]
 
     if check_dish_list(name):
         await message.answer(f'Блюдо "{name}": {get_ingredients(name)}')
         return
+
     await message.answer("Такого блюда не существует!")
 
 
 @router.message(Command("reduce"))
 async def cmd_reduce(message: Message):
-    try:
-        dish_name = split_message(message)[0]
-        ing_name = split_message(message)[1]
-        value = split_message(message)[2]
-    except TypeError:
+    text_message = await check_message(message, 4)
+
+    if text_message is None:
         await message.answer(
-            "Неверный ввод, проверьте верно ли вы отправили сообщение!"
+            "Неверный ввод\n"
+            "\nКак уменьшить количество ингредиента : "
+            '\n/reduce "название блюда" "название ингредиента" '
+            '"на сколько хотите уменьшить вес"  '
         )
         return
+
+    dish_name = text_message[0]
+    ing_name = text_message[1]
+    value = text_message[2]
 
     for i in list_of_dish[dish_name]:
         if i.name == ing_name:
             i.weight -= float(value)
+            await message.answer(
+                f'Количество ингредиента "{i.name}" теперь = {i.weight}'
+            )
             if i.weight == 0 or i.weight < 0:
                 list_of_dish[dish_name].remove(i)
+                await message.answer("Ингредиент удалён из списка!")
+        else:
+            await message.answer("Такого ингредиента в списке нет!")
 
     print(list_of_dish[dish_name])
+
+
+async def check_message(message: Message, n: int) -> []:
+    text_message = split_message(message)
+
+    if len(text_message) == 0 or n < len(text_message):
+        await message.answer(
+            "Неверный ввод, проверьте, верно ли вы отправили сообщение!"
+        )
+        return None
+
+    return text_message
 
 
 # проверка на наличие имени в словаре
@@ -139,6 +148,4 @@ def quotes_finder(text):
 # разделение строки на массив строк
 def split_message(message: Message):
     split_message = quotes_finder(message.text)
-    if len(split_message) == 0:
-        return
     return split_message
