@@ -1,5 +1,4 @@
 import re
-from collections import defaultdict
 
 from schemas.ingredients import Ingredients
 
@@ -10,7 +9,7 @@ from aiogram.filters import Command
 router = Router()
 
 
-list_of_dish = defaultdict()
+list_of_dish = dict()
 
 
 # команда для создания блюда
@@ -35,7 +34,7 @@ async def cmd_create(message: Message):
 # добавление ингредиента в блюдо
 @router.message(Command("add"))
 async def cmd_add(message: Message):
-    ingredients: [str] = await check_message(message, 4)
+    ingredients: list[str] = await check_message(message, 4)
 
     if ingredients is None:
         await message.answer(
@@ -46,17 +45,19 @@ async def cmd_add(message: Message):
         )
         return
 
-    dish_name = ingredients[0]
-    ingredients.pop(0)
+    dish_name, name, weight, measure = ingredients
 
-    if check_dish_list(dish_name):
-        name, weight, measure = ingredients
-        new_ingr = Ingredients(name=name, weight=weight, measure=measure)
-        list_of_dish[dish_name].append(new_ingr)
-        await message.answer("Ингредиент добавлен в список!")
-        return
-
-    await message.answer("Такого блюда не существует!")
+    if dish_name in list_of_dish:
+        for i in list_of_dish[dish_name]:
+            if i.name == name:
+                await message.answer("Такой ингредиент уже есть в списке!")
+                return
+        else:
+            new_ingr = Ingredients(name=name, weight=weight, measure=measure)
+            list_of_dish[dish_name].append(new_ingr)
+            await message.answer("Ингредиент добавлен в список!")
+    else:
+        await message.answer("Такого блюда не существует!")
 
 
 # команда для списка ингредиентов
@@ -69,11 +70,10 @@ async def cmd_get(message: Message):
 
     name = name[0]
 
-    if check_dish_list(name):
+    if name in list_of_dish:
         await message.answer(f'Блюдо "{name}": {get_ingredients(name)}')
-        return
-
-    await message.answer("Такого блюда не существует!")
+    else:
+        await message.answer("Такого блюда не существует!")
 
 
 @router.message(Command("reduce"))
@@ -88,10 +88,8 @@ async def cmd_reduce(message: Message):
             '"на сколько хотите уменьшить вес"  '
         )
         return
-
-    dish_name = text_message[0]
-    ing_name = text_message[1]
-    value = text_message[2]
+    else:
+        dish_name, ing_name, value = text_message
 
     for i in list_of_dish[dish_name]:
         if i.name == ing_name:
@@ -102,13 +100,14 @@ async def cmd_reduce(message: Message):
             if i.weight == 0 or i.weight < 0:
                 list_of_dish[dish_name].remove(i)
                 await message.answer("Ингредиент удалён из списка!")
-        else:
-            await message.answer("Такого ингредиента в списке нет!")
+            break
+    else:
+        await message.answer("Такого ингредиента в списке нет!")
 
     print(list_of_dish[dish_name])
 
 
-async def check_message(message: Message, n: int) -> []:
+async def check_message(message: Message, n: int) -> list[str] | None:
     text_message = split_message(message)
 
     if len(text_message) == 0 or n < len(text_message):
@@ -120,24 +119,19 @@ async def check_message(message: Message, n: int) -> []:
     return text_message
 
 
-# проверка на наличие имени в словаре
-def check_dish_list(name: str):
-    if name in list_of_dish:
-        return True
-    else:
-        return False
-
-
 # получение ингредиентов блюда
 def get_ingredients(name: str):
-    if len(list_of_dish[name]) == 0:
-        x = "\nВ блюде пока нет ингредиентов"
-    else:
+    list_of_ingr = ""
+
+    if list_of_dish[name]:
         n = 0
         for i in list_of_dish[name]:
             n += 1
-            x = f"\n{n}. {i.name} - {i.weight} {i.measure}"
-    return x
+            list_of_ingr += f"\n{n}. {i.name} - {i.weight} {i.measure}"
+    else:
+        list_of_ingr = "\nВ блюде пока нет ингредиентов"
+
+    return list_of_ingr
 
 
 # "вытаскиевание" нужных слов с помощью кавычек
