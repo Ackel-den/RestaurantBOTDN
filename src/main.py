@@ -3,12 +3,12 @@ import asyncio
 from aiogram import Bot, Dispatcher
 
 import settings
-from app.handlers import router
+from handlers import router
+
 
 setting = settings.Settings()
 bot = Bot(token=setting.bot_token)
 dp = Dispatcher()
-dp.include_router(router)
 
 
 async def main():
