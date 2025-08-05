@@ -76,41 +76,39 @@ async def cmd_get(message: Message):
         await message.answer("Такого блюда не существует!")
 
 
-@router.message(Command("reduce"))
-async def cmd_reduce(message: Message):
-    text_message = await check_message(message, 4)
+# Установление значения для ингредиента
+@router.message(Command("set"))
+async def cmd_set(message: Message):
+    dish = await check_message(message, 3)
 
-    if text_message is None:
-        await message.answer(
-            "Неверный ввод\n"
-            "\nКак уменьшить количество ингредиента : "
-            '\n/reduce "название блюда" "название ингредиента" '
-            '"на сколько хотите уменьшить вес"  '
-        )
+    if dish is None:
         return
-    else:
-        dish_name, ing_name, value = text_message
 
-    for i in list_of_dish[dish_name]:
-        if i.name == ing_name:
-            i.weight -= float(value)
-            await message.answer(
-                f'Количество ингредиента "{i.name}" теперь = {i.weight}'
-            )
-            if i.weight == 0 or i.weight < 0:
-                list_of_dish[dish_name].remove(i)
-                await message.answer("Ингредиент удалён из списка!")
-            break
-    else:
-        await message.answer("Такого ингредиента в списке нет!")
+    dish_name, ing, value = dish
+    value = float(value)
 
-    print(list_of_dish[dish_name])
+    if dish_name in list_of_dish:
+        for i in list_of_dish[dish_name]:
+            if i.name == ing:
+                if value <= 0:
+                    list_of_dish[dish_name].remove(i)
+                    await message.answer(f'Ингредиент "{i.name}" удалён из списка!')
+                elif value > 0:
+                    i.weight = value
+                    await message.answer(
+                        f'Количество ингредиента "{i.name}" теперь = {i.weight}'
+                    )
+                break
+        else:
+            await message.answer("Такого ингредиента в списке нет!")
+    else:
+        await message.answer("Такого блюда не существует!")
 
 
 async def check_message(message: Message, n: int) -> list[str] | None:
     text_message = split_message(message)
-
-    if len(text_message) == 0 or n < len(text_message):
+    print(len(text_message))
+    if n > len(text_message) or len(text_message) == 0:
         await message.answer(
             "Неверный ввод, проверьте, верно ли вы отправили сообщение!"
         )
