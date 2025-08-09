@@ -42,9 +42,12 @@ async def set_new_ing(dish, ing, tg_id):
             await session.commit()
 
 
-async def set_new_weight(dish, ing, weight):
+async def set_new_weight(dish, ing, weight, tg_id):
     async with async_session() as session:
-        dish = await session.scalar(select(Dish).where(Dish.name == dish))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        dish = await session.scalar(
+            select(Dish).where(Dish.name == dish, Dish.user_id == user.id)
+        )
         ing = await session.scalar(
             select(Ingredient).where(Ingredient.dish == dish.id, Ingredient.name == ing)
         )
@@ -88,9 +91,12 @@ async def check_dish(name, tg_id):
         return bool(name)
 
 
-async def check_ingedient(dish, name):
+async def check_ingedient(dish, name, tg_id):
     async with async_session() as session:
-        dish = await session.scalar(select(Dish).where(Dish.name == dish))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        dish = await session.scalar(
+            select(Dish).where(Dish.name == dish, Dish.user_id == user.id)
+        )
         ingredient = await session.scalar(
             select(Ingredient).where(
                 Ingredient.dish == dish.id, Ingredient.name == name

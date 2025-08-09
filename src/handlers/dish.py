@@ -45,7 +45,7 @@ async def cmd_add(message: Message):
     dish_name, name, weight, measure = ingredients
 
     if await rq.check_dish(dish_name, message.from_user.id):
-        if await rq.check_ingedient(dish_name, name):
+        if await rq.check_ingedient(dish_name, name, message.from_user.id):
             await message.answer(f"Ингредиент {name} уже есть в списке!")
         else:
             if weight.isnumeric():
@@ -88,8 +88,10 @@ async def cmd_set(message: Message):
 
     if value.isnumeric():
         if await rq.check_dish(dish_name, message.from_user.id):
-            if await rq.check_ingedient(dish_name, ing):
-                await rq.set_new_weight(dish_name, ing, float(value))
+            if await rq.check_ingedient(dish_name, ing, message.from_user.id):
+                await rq.set_new_weight(
+                    dish_name, ing, float(value), message.from_user.id
+                )
                 if float(value) > 0:
                     await message.answer(f'Значение ингредиента "{ing}" теперь {value}')
                 else:
