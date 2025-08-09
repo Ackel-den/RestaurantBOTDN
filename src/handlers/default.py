@@ -5,6 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
 
 from src import settings
+import database.request as rq
 
 router = Router()
 setting = settings.Settings()
@@ -14,6 +15,7 @@ end_time = datetime.strptime(setting.time_end, "%H:%M").time()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
+    await rq.set_user(message.from_user.id)
     await message.answer("Привет! Вы запустили ресторанного бота!")
 
 
