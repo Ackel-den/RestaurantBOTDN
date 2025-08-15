@@ -22,7 +22,9 @@ class Dish(Base):
     __tablename__ = "dishes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(25))
+    # category: Mapped[int] = mapped_column(ForeignKey('categories.id'))
+    # description: Mapped[str] = mapped_column()
+    name: Mapped[str] = mapped_column(String(16))
     user_id: Mapped[BigInteger] = mapped_column(ForeignKey("users.id"))
 
 
@@ -31,10 +33,16 @@ class Ingredient(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     dish: Mapped[int] = mapped_column(ForeignKey("dishes.id"))
-    name: Mapped[str] = mapped_column(String(25))
+    name: Mapped[str] = mapped_column(String(16))
     weight: Mapped[float] = mapped_column()
     measure: Mapped[str] = mapped_column(String(3))
 
+#
+# class Categories(Base):
+#     __tablename__ = 'categories'
+#
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     name: Mapped[str] = mapped_column()
 
 async def async_main():
     async with engine.begin() as conn:
