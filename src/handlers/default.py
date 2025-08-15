@@ -5,6 +5,7 @@ from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
 
 from src import settings
+import database.request as rq
 
 router = Router()
 setting = settings.Settings()
@@ -14,6 +15,7 @@ end_time = datetime.strptime(setting.time_end, "%H:%M").time()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
+    await rq.set_user(message.from_user.id)
     await message.answer("Привет! Вы запустили ресторанного бота!")
 
 
@@ -25,9 +27,9 @@ async def cmd_help(message: Message):
         "\n/help - список команд"
         "\n/time - узнать, работает ли ресторан"
         "\n/create - создать новое блюдо"
-        "\n/reduce - удалить ингредиент в блюде"
-        '\nПРИМЕР:\n<b>/reduce "Омлет" "Молоко" "500"</b>'
-        '\nВ данном случае количество ингредиента "Молоко" уменьшится на 500 (если будет равно 0, '
+        "\n/set - поменять значение для ингредиента"
+        '\nПРИМЕР:\n<b>/set "Омлет" "Молоко" "500"</b>'
+        '\nВ данном случае количество ингредиента "Молоко" станет = 500 (если указать 0, '
         "или меньше, то ингредиент удалится)"
         "\n\n/add - добавить ингредиент в блюдо"
         "\n\n<b>ВАЖНО: НАЗВАНИЯ ДОЛЖНЫ БЫТЬ В КАВЫЧКАХ, ПРИМЕР: "
