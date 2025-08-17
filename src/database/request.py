@@ -1,6 +1,8 @@
 from mimetypes import inited
 
-from database.models import async_session
+from sqlalchemy.orm import scoped_session
+
+from database.models import async_session, Category
 from database.models import User, Dish, Ingredient
 from sqlalchemy import select
 
@@ -16,7 +18,7 @@ async def set_user(tg_id):
 
 
 # Добавление блюда в БД
-async def set_new_dish(name, tg_id):
+async def set_new_dish(name, category, tg_id):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
         dish = await session.scalar(
@@ -24,7 +26,8 @@ async def set_new_dish(name, tg_id):
         )
 
         if not dish:
-            session.add(Dish(name=name, user_id=user.id))
+            category = await session.scalar(select(Category).where(Category.name==category))
+            session.add(Dish(name=name, description='', category=category.id, user_id=user.id))
             await session.commit()
 
 
@@ -63,6 +66,14 @@ async def set_new_weight(id, weight):
         await session.commit()
 
 
+async def set_description(id, name, description):
+    async with async_session() as session:
+        user = await session.scalar(select(User).where(User.tg_id==id))
+        dish = await session.scalar(select(Dish).where(Dish.user_id==user.id, Dish.name==name))
+        dish.description = description
+        await session.commit()
+
+
 # Возвращает список ингредиентов строкой
 async def get_ingredient_list_str(name: str, tg_id):
     ingredients = ""
@@ -82,7 +93,7 @@ async def get_ingredient_list_str(name: str, tg_id):
                 ingredients += f"\n{n}. {i.name} - {i.weight} {i.measure}"
             if n== 0:
                 ingredients = "\nВ блюде пока нет ингредиентов"
-
+        ingredients += f'\n\nОписание:\n{dish.description}'
         return ingredients
 
 
@@ -96,10 +107,11 @@ async def get_ingredient_list(dish_name, tg_id):
 
 
 # Получить список блюд
-async def get_dish_list(tg_id):
+async def get_dish_list(category, tg_id):
     async with async_session() as session:
+        category = await session.scalar(select(Category).where(Category.name==category))
         user = await session.scalar(select(User).where(User.tg_id==tg_id))
-        dish_list = await session.scalars(select(Dish).where(Dish.user_id==user.id))
+        dish_list = await session.scalars(select(Dish).where(Dish.category==category.id, Dish.user_id==user.id))
         return dish_list.all()
 
 

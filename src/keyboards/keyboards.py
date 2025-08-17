@@ -9,12 +9,25 @@ menu = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 
+category_create_dish = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='☕️Завтрак', callback_data='category:Завтрак'), InlineKeyboardButton(text= '🍛Обед',callback_data='category:Обед')],
+    [InlineKeyboardButton(text='🥗Ужин', callback_data='category:Ужин'), InlineKeyboardButton(text='🍩Десерт', callback_data='category:Десерт')],
+])
+
+category_list_dish = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='☕️Завтрак', callback_data='category_list:Завтрак'), InlineKeyboardButton(text= '🍛Обед',callback_data='category_list:Обед')],
+    [InlineKeyboardButton(text='🥗Ужин', callback_data='category_list:Ужин'), InlineKeyboardButton(text='🍩Десерт', callback_data='category_list:Десерт')],
+    [InlineKeyboardButton(text='🏠Главное меню',callback_data='menu')]
+])
+
+
 # Клавиатура меню блюда
 async def dish_menu(name):
     menu = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='🗒️Посмотреть ингредиенты', callback_data=f'ingredient_list:{name}')],
         [InlineKeyboardButton(text='🧂Добавить ингредиент', callback_data=f'dish_{name}')],
         [InlineKeyboardButton(text='📝Изменить ингредиент', callback_data=f'ingredient_set:{name}')],
+        [InlineKeyboardButton(text='📋Изменить описание блюда', callback_data=f'description:{name}')],
         [InlineKeyboardButton(text='❌Убрать ингредиент', callback_data=f'ingredient_delete:{name}')],
         [InlineKeyboardButton(text='🚫УДАЛИТЬ БЛЮДО🚫', callback_data=f'dish_delete:{name}')],
         [InlineKeyboardButton(text='⬅️Список блюд', callback_data='list_dish')]

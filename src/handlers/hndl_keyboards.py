@@ -20,10 +20,17 @@ async def menu(callback: CallbackQuery):
 
 # Клавиатура списка блюд
 @router.callback_query(F.data=='list_dish')
-async def choose_dish(callback: CallbackQuery):
+async def categories_list(callback: CallbackQuery):
     await callback.answer('')
+    await callback.message.edit_text('Выберите категорию блюда:', reply_markup=kb.category_list_dish)
+
+
+@router.callback_query(F.data.startswith('category_list:'))
+async def choose_dish(callback: CallbackQuery):
+    await callback.answer()
+    category = callback.data.split(':')[1]
     await callback.message.edit_text('Выберите блюдо из списка:',
-                         reply_markup=await pg.paginated_dish_list(await rq.get_dish_list(callback.from_user.id), 0))
+        reply_markup = await pg.paginated_dish_list(await rq.get_dish_list(category, callback.from_user.id), 0))
 
 
 @router.callback_query(F.data.startswith('page:'))

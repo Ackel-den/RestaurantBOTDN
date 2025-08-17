@@ -11,6 +11,7 @@ bot = Bot(token=setting.bot_token)
 dp = Dispatcher()
 
 
+
 async def main():
     await async_main()
     dp.include_router(router)

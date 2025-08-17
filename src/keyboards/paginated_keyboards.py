@@ -14,7 +14,7 @@ async def paginated_dish_list(dish_list, page):
         keyboard.add(InlineKeyboardButton(text=dish.name, callback_data=f'dishmenu_{dish.name}'))
 
     keyboard.adjust(2)
-    keyboard.row(InlineKeyboardButton(text='📋Меню', callback_data='menu'))
+    keyboard.row(InlineKeyboardButton(text='📋Назад к списку', callback_data='list_dish'))
 
     if page == 0 and end <= len(dish_list):
         keyboard.row(InlineKeyboardButton(text='➡️', callback_data=f'page:{page+1}'))
